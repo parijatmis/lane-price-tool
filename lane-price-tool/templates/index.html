@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lane Price Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 50px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 300px;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lane Price Calculator</h1>
+  <form id="calcForm">
+    <label for="origin">Origin (e.g. California)</label>
+    <input type="text" id="origin" required>
+
+    <label for="destination">Destination (e.g. Texas)</label>
+    <input type="text" id="destination" required>
+
+    <label for="truckType">Truck Type</label>
+    <select id="truckType">
+      <option value="dry_van">Dry Van</option>
+      <option value="flatbed">Flatbed</option>
+      <option value="reefer">Reefer</option>
+    </select>
+
+    <button type="submit">Calculate</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('calcForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const origin = document.getElementById('origin').value;
+      const destination = document.getElementById('destination').value;
+      const truckType = document.getElementById('truckType').value;
+
+      fetch('/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ origin, destination, truck_type: truckType })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById('result').innerText = 'Error: ' + data.error;
+        } else {
+          document.getElementById('result').innerHTML = `
+            Distance: ${data.distance_miles} miles<br>
+            Rate per mile: $${data.rate_per_mile}<br>
+            Total Price: $${data.total_price_usd}
+          `;
+        }
+      })
+      .catch(err => {
+        document.getElementById('result').innerText = 'Error: ' + err.message;
+      });
+    });
+  </script>
+</body>
+</html>
